@@ -1,32 +1,38 @@
 /**
  * Plynity Tournament Configuration
- * 
- * Replace each PLACEHOLDER_URL with your actual Google Apps Script Web App URL.
- * Each sheet corresponds to one tournament registration sheet.
- * 
- * Format: https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec
+ *
+ * All sensitive values are sourced from environment variables.
+ * Set values in the root .env file using the VITE_ prefix.
  */
 
+const getEnvVar = (key) => {
+  const value = import.meta.env[key];
+  if (!value) {
+    console.error(`[Plynity] Missing environment variable: ${key}. Please set it in your .env file.`);
+  }
+  return value || '';
+};
+
 export const GOOGLE_SHEET_URLS = {
-  BGMI_SOLO_FRIDAY:     'https://script.google.com/macros/s/AKfycbzAUh7VmjxFz8IWHSB0dQRty0CxYBg113QEMaEQtIMCj22D3vCpMGWO6SgB6BB2gqGu/exec',
-  BGMI_DUO_FRIDAY:      'https://script.google.com/macros/s/AKfycbycrLHDWlIy3u2RBpLFmv8v6Bm0RVo5SS7Toffy8ezGpXxQJPi5Cdlga9kVSbfoi-KOnA/exec',
-  BGMI_SOLO_SATURDAY:   'https://script.google.com/macros/s/AKfycbwpSVJDZAv9DkErCjBb0yvgf4CQ4-uJEDz5-myauPmK9GXLZFSfjGpHXyEd8TBOP49HVg/exec',
-  BGMI_SQUAD_SATURDAY:  'https://script.google.com/macros/s/AKfycbyKY2w8ikuVIS6m66fsd_iTx_dAGYgjsu6HhU3vkr5ai_5QDSzaBWSmCImzkGga4e8n/exec',
-  BGMI_SOLO_SUNDAY:     'https://script.google.com/macros/s/AKfycbxHLK3YsDlk8GR-51NmUgHK0dtgBozDd5MfR8jPjb5E1-oTctCOhX-bRkj70pZA_YLN/exec',
-  BGMI_SQUAD_SUNDAY:    'https://script.google.com/macros/s/AKfycbyb0WiCUS3R1U4_vfuG0gIvKjeo_gszpo6HKQ5PLioFDQB3kN7-wvOQHzDQT5wUTLjZ/exec',
-  FF_SOLO_FRIDAY:       'https://script.google.com/macros/s/AKfycbwBJbvulYKbsbnO2HUlhXhayt1FklZC3IRLcsm2s9Jp1i0MOMUSVjTbNwKsnMhufLQ/exec',
-  FF_DUO_FRIDAY:        'https://script.google.com/macros/s/AKfycbwW2EGzKKXkSFtPQ8q9MgiGNuPY9mrELC-AMVJgQ_vLrhyCOSCxdRsAnkXxLzMzyMU4/exec',
-  FF_SOLO_SATURDAY:     'https://script.google.com/macros/s/AKfycbwn3qVsUj-imC2uasWBAaOmsrh6sJEQCZ8LPoIhzvd2Ai9UW9EiWqkS8-pnfOqEHdhB/exec',
-  FF_SQUAD_SATURDAY:    'https://script.google.com/macros/s/AKfycbw2bNQjZQiN14gSDTYa8EFnZ4W1Xx33FwcO5Fv99RCszOKBbF9SLug424pTuXzBKRdkkQ/exec',
-  FF_SOLO_SUNDAY:       'https://script.google.com/macros/s/AKfycbys_WWYwS4PZdwatigzBcLHg1_1D-gd1od_UeqJKEaKwsQVjMyqPhlfR415Ea8UoGYU/exec',
-  FF_SQUAD_SUNDAY:      'https://script.google.com/macros/s/AKfycbwWxvGB4rn9JltzAA9eJVCdUC937DGCn9kl2pHaeo1d8XVmolKLdaoextr5S-OO4LeeJg/exec',
+  BGMI_SOLO_FRIDAY:     getEnvVar('VITE_BGMI_SOLO_FRIDAY'),
+  BGMI_DUO_FRIDAY:      getEnvVar('VITE_BGMI_DUO_FRIDAY'),
+  BGMI_SOLO_SATURDAY:   getEnvVar('VITE_BGMI_SOLO_SATURDAY'),
+  BGMI_SQUAD_SATURDAY:  getEnvVar('VITE_BGMI_SQUAD_SATURDAY'),
+  BGMI_SOLO_SUNDAY:     getEnvVar('VITE_BGMI_SOLO_SUNDAY'),
+  BGMI_SQUAD_SUNDAY:    getEnvVar('VITE_BGMI_SQUAD_SUNDAY'),
+  FF_SOLO_FRIDAY:       getEnvVar('VITE_FF_SOLO_FRIDAY'),
+  FF_DUO_FRIDAY:        getEnvVar('VITE_FF_DUO_FRIDAY'),
+  FF_SOLO_SATURDAY:     getEnvVar('VITE_FF_SOLO_SATURDAY'),
+  FF_SQUAD_SATURDAY:    getEnvVar('VITE_FF_SQUAD_SATURDAY'),
+  FF_SOLO_SUNDAY:       getEnvVar('VITE_FF_SOLO_SUNDAY'),
+  FF_SQUAD_SUNDAY:      getEnvVar('VITE_FF_SQUAD_SUNDAY'),
 };
 
 /**
  * Razorpay Configuration
  * Replace with your actual Razorpay Key ID from https://dashboard.razorpay.com
  */
-export const RAZORPAY_KEY_ID = 'PLACEHOLDER_RAZORPAY_KEY_ID';
+export const RAZORPAY_KEY_ID = getEnvVar('VITE_RAZORPAY_KEY_ID');
 
 /**
  * Tournament data — matches the Flutter app exactly
