@@ -35,14 +35,13 @@ export default function RegisterPage() {
 
   const [form, setForm] = useState({
     playerName: '',
-    gameId: '',
     mobile: '',
     email: '',
     instagramId: '',
     // Duo/Squad extra fields
-    player2Name: '', player2GameId: '',
-    player3Name: '', player3GameId: '',
-    player4Name: '', player4GameId: '',
+    player2Name: '',
+    player3Name: '',
+    player4Name: '',
   });
 
   const [errors, setErrors] = useState({});
@@ -62,18 +61,14 @@ export default function RegisterPage() {
   const validate = () => {
     const e = {};
     if (!form.playerName.trim()) e.playerName = 'Player name is required';
-    if (!form.gameId.trim()) e.gameId = 'In-game ID is required';
     if (!form.mobile.trim() || !/^\d{10}$/.test(form.mobile)) e.mobile = 'Enter valid 10-digit mobile';
     if (!form.email.trim() || !/\S+@\S+\.\S+/.test(form.email)) e.email = 'Enter valid email';
     if (isDuo || isSquad) {
       if (!form.player2Name.trim()) e.player2Name = 'Player 2 name required';
-      if (!form.player2GameId.trim()) e.player2GameId = 'Player 2 game ID required';
     }
     if (isSquad) {
       if (!form.player3Name.trim()) e.player3Name = 'Player 3 name required';
-      if (!form.player3GameId.trim()) e.player3GameId = 'Player 3 game ID required';
       if (!form.player4Name.trim()) e.player4Name = 'Player 4 name required';
-      if (!form.player4GameId.trim()) e.player4GameId = 'Player 4 game ID required';
     }
     return e;
   };
@@ -111,14 +106,13 @@ export default function RegisterPage() {
           entryFee: matchInfo.entryFee,
           paymentId,
           player1Name: form.playerName,
-          player1GameId: form.gameId,
           mobile: form.mobile,
           email: form.email,
           instagramId: form.instagramId,
-          ...(isDuo || isSquad ? { player2Name: form.player2Name, player2GameId: form.player2GameId } : {}),
+          ...(isDuo || isSquad ? { player2Name: form.player2Name } : {}),
           ...(isSquad ? {
-            player3Name: form.player3Name, player3GameId: form.player3GameId,
-            player4Name: form.player4Name, player4GameId: form.player4GameId,
+            player3Name: form.player3Name,
+            player4Name: form.player4Name,
           } : {}),
         };
 
@@ -377,18 +371,6 @@ export default function RegisterPage() {
             </div>
 
             <div className="mb-4">
-              <label style={labelStyle}>In-Game ID (UID) *</label>
-              <input
-                type="text"
-                placeholder="Your BGMI/FF UID"
-                value={form.gameId}
-                onChange={handleChange('gameId')}
-                style={{ ...inputStyle, borderColor: errors.gameId ? '#ef4444' : undefined }}
-              />
-              {errors.gameId && <p className="text-xs mt-1" style={{ color: '#ef4444' }}>{errors.gameId}</p>}
-            </div>
-
-            <div className="mb-4">
               <label style={labelStyle}>Mobile Number *</label>
               <input
                 type="tel"
@@ -445,13 +427,6 @@ export default function RegisterPage() {
                   style={{ ...inputStyle, borderColor: errors.player2Name ? '#ef4444' : undefined }} />
                 {errors.player2Name && <p className="text-xs mt-1" style={{ color: '#ef4444' }}>{errors.player2Name}</p>}
               </div>
-              <div>
-                <label style={labelStyle}>In-Game ID *</label>
-                <input type="text" placeholder="Player 2 UID" value={form.player2GameId}
-                  onChange={handleChange('player2GameId')}
-                  style={{ ...inputStyle, borderColor: errors.player2GameId ? '#ef4444' : undefined }} />
-                {errors.player2GameId && <p className="text-xs mt-1" style={{ color: '#ef4444' }}>{errors.player2GameId}</p>}
-              </div>
             </div>
           )}
 
@@ -474,13 +449,6 @@ export default function RegisterPage() {
                       value={form[`player${n}Name`]} onChange={handleChange(`player${n}Name`)}
                       style={{ ...inputStyle, borderColor: errors[`player${n}Name`] ? '#ef4444' : undefined }} />
                     {errors[`player${n}Name`] && <p className="text-xs mt-1" style={{ color: '#ef4444' }}>{errors[`player${n}Name`]}</p>}
-                  </div>
-                  <div>
-                    <label style={labelStyle}>In-Game ID *</label>
-                    <input type="text" placeholder={`Player ${n} UID`}
-                      value={form[`player${n}GameId`]} onChange={handleChange(`player${n}GameId`)}
-                      style={{ ...inputStyle, borderColor: errors[`player${n}GameId`] ? '#ef4444' : undefined }} />
-                    {errors[`player${n}GameId`] && <p className="text-xs mt-1" style={{ color: '#ef4444' }}>{errors[`player${n}GameId`]}</p>}
                   </div>
                 </div>
               ))}
