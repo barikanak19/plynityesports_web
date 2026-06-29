@@ -29,10 +29,12 @@ export const GOOGLE_SHEET_URLS = {
 };
 
 /**
- * Razorpay Configuration
- * Replace with your actual Razorpay Key ID from https://dashboard.razorpay.com
+ * Cashfree Configuration
+ * Configure your Cashfree app ID, environment, and session endpoint in the root .env file.
  */
-export const RAZORPAY_KEY_ID = getEnvVar('VITE_RAZORPAY_KEY_ID');
+export const CASHFREE_APP_ID = getEnvVar('VITE_CASHFREE_APP_ID');
+export const CASHFREE_ENV = getEnvVar('VITE_CASHFREE_ENV') || 'sandbox';
+export const CASHFREE_SESSION_URL = getEnvVar('VITE_CASHFREE_SESSION_URL') || '';
 
 /**
  * Tournament data — matches the Flutter app exactly
@@ -53,6 +55,7 @@ export const TOURNAMENTS = {
             id: 'bgmi_solo_friday',
             sheetKey: 'BGMI_SOLO_FRIDAY',
             type: 'SOLO',
+            map: 'Erangel',
             time: '9:30 PM',
             entryFee: 10,
             maxSlots: 100,
@@ -71,6 +74,7 @@ export const TOURNAMENTS = {
             id: 'bgmi_duo_friday',
             sheetKey: 'BGMI_DUO_FRIDAY',
             type: 'DUO',
+            map: 'Erangel',
             time: '10:30 PM',
             entryFee: 20,
             maxSlots: 50,
@@ -94,6 +98,7 @@ export const TOURNAMENTS = {
             id: 'bgmi_solo_saturday',
             sheetKey: 'BGMI_SOLO_SATURDAY',
             type: 'SOLO',
+            map: 'Erangel',
             time: '9:30 PM',
             entryFee: 20,
             maxSlots: 100,
@@ -115,6 +120,7 @@ export const TOURNAMENTS = {
             id: 'bgmi_squad_saturday',
             sheetKey: 'BGMI_SQUAD_SATURDAY',
             type: 'SQUAD',
+            map: 'Erangel',
             time: '10:30 PM',
             entryFee: 50,
             maxSlots: 25,
@@ -139,6 +145,7 @@ export const TOURNAMENTS = {
             id: 'bgmi_solo_sunday',
             sheetKey: 'BGMI_SOLO_SUNDAY',
             type: 'SOLO',
+            map: 'Erangel',
             time: '2:30 PM',
             entryFee: 10,
             maxSlots: 100,
@@ -157,6 +164,7 @@ export const TOURNAMENTS = {
             id: 'bgmi_squad_sunday',
             sheetKey: 'BGMI_SQUAD_SUNDAY',
             type: 'SQUAD',
+            map: 'Erangel',
             time: '3:30 PM',
             entryFee: 50,
             maxSlots: 25,
@@ -192,6 +200,7 @@ export const TOURNAMENTS = {
             id: 'ff_solo_friday',
             sheetKey: 'FF_SOLO_FRIDAY',
             type: 'SOLO',
+            map: 'BR',
             time: '8:00 PM',
             entryFee: 10,
             maxSlots: 50,
@@ -210,6 +219,7 @@ export const TOURNAMENTS = {
             id: 'ff_duo_friday',
             sheetKey: 'FF_DUO_FRIDAY',
             type: 'DUO',
+            map: 'BR',
             time: '8:30 PM',
             entryFee: 30,
             maxSlots: 25,
@@ -231,6 +241,7 @@ export const TOURNAMENTS = {
             id: 'ff_solo_saturday',
             sheetKey: 'FF_SOLO_SATURDAY',
             type: 'SOLO',
+            map: 'BR',
             time: '8:00 PM',
             entryFee: 20,
             maxSlots: 50,
@@ -254,6 +265,7 @@ export const TOURNAMENTS = {
             id: 'ff_squad_saturday',
             sheetKey: 'FF_SQUAD_SATURDAY',
             type: 'SQUAD',
+            map: 'BR',
             time: '8:30 PM',
             entryFee: 50,
             maxSlots: 12,
@@ -274,6 +286,7 @@ export const TOURNAMENTS = {
             id: 'ff_solo_sunday',
             sheetKey: 'FF_SOLO_SUNDAY',
             type: 'SOLO',
+            map: 'BR',
             time: '1:00 PM',
             entryFee: 10,
             maxSlots: 50,
@@ -292,6 +305,7 @@ export const TOURNAMENTS = {
             id: 'ff_squad_sunday',
             sheetKey: 'FF_SQUAD_SUNDAY',
             type: 'SQUAD',
+            map: 'BR',
             time: '1:30 PM',
             entryFee: 50,
             maxSlots: 12,

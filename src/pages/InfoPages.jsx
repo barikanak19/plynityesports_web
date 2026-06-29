@@ -46,7 +46,7 @@ export function PrivacyPolicyPage() {
           points: [
             'Collects player name, mobile number, email and optional Instagram ID.',
             'Data is used for tournament registration, match communication and payment verification.',
-            'Payment is handled securely via Razorpay/UPI.',
+            'Payment is handled securely via Cashfree/UPI.',
             'Player data is not sold to third parties.',
           ],
         },

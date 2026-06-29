@@ -1,11 +1,12 @@
 /**
  * RegisterPage — full registration flow:
- * Form → Razorpay Payment → Google Sheets → Success Screen
+ * Form → Cashfree Payment → Google Sheets → Success Screen
  */
 import { useState } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
+import { Map } from 'lucide-react';
 import { useApp } from '../context/AppContext';
-import { useRazorpay } from '../hooks/useRazorpay';
+import { useCashfree } from '../hooks/useCashfree';
 import { submitRegistration } from '../services/sheetsService';
 import { getAllMatches } from '../config/tournaments';
 import PageHeader from '../components/PageHeader';
@@ -17,7 +18,7 @@ export default function RegisterPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const { isDarkMode, addUpcomingMatch } = useApp();
-  const { initiatePayment } = useRazorpay();
+  const { initiatePayment } = useCashfree();
 
   // Resolve match from location state or config
   const stateMatch = location.state?.match;
@@ -96,9 +97,10 @@ export default function RegisterPage() {
       name: form.playerName,
       email: form.email,
       phone: form.mobile,
+      orderId: `${matchInfo.id}-${Date.now()}`,
       description: `${game.name} ${matchInfo.type} ${matchInfo.day} - ₹${matchInfo.entryFee}`,
-      onSuccess: async (rzpPaymentId) => {
-        setPaymentId(rzpPaymentId);
+      onSuccess: async ({ paymentId }) => {
+        setPaymentId(paymentId);
         // Build payload for Google Sheets
         const payload = {
           timestamp: new Date().toISOString(),
@@ -107,7 +109,7 @@ export default function RegisterPage() {
           day: matchInfo.day,
           time: matchInfo.time,
           entryFee: matchInfo.entryFee,
-          paymentId: rzpPaymentId,
+          paymentId,
           player1Name: form.playerName,
           player1GameId: form.gameId,
           mobile: form.mobile,
@@ -133,6 +135,7 @@ export default function RegisterPage() {
             type: matchInfo.type,
             day: matchInfo.day,
             time: matchInfo.time,
+            map: matchInfo.map,
             entryFee: matchInfo.entryFee,
             color,
             registeredAt: new Date().toISOString(),
@@ -192,6 +195,38 @@ export default function RegisterPage() {
           You're in! Good luck, {form.playerName}!
         </p>
 
+        <div
+          className="w-full max-w-[420px] rounded-2xl px-4 py-3.5 mb-3 text-center shadow-sm"
+          style={{
+            background: '#FFF8E7',
+            border: '1px solid #F0E6C8',
+            boxShadow: '0 10px 30px rgba(0,0,0,0.08)',
+          }}
+        >
+          <div className="flex items-center justify-center gap-2">
+            <span className="text-lg">❤️</span>
+            <p className="text-sm font-semibold" style={{ color: '#3A2E00' }}>
+              Thank you for choosing Plynity Esports ❤️
+            </p>
+          </div>
+        </div>
+
+        <div
+          className="w-[92%] max-w-[430px] rounded-2xl px-3.5 py-3.5 mb-6 text-left shadow-sm"
+          style={{
+            background: '#FFF8E7',
+            border: '1px solid #F0E6C8',
+            boxShadow: '0 8px 24px rgba(0,0,0,0.06)',
+          }}
+        >
+          <div className="flex items-start gap-2">
+            <span className="text-base mt-0.5">ℹ️</span>
+            <p className="text-sm leading-relaxed" style={{ color: '#3A2E00' }}>
+              Note: Room ID &amp; Password will be sent to your registered email address 15 minutes before your match starts. Please check your inbox (and Spam folder if necessary) before the match.
+            </p>
+          </div>
+        </div>
+
         {/* Match summary */}
         <div
           className="w-full rounded-2xl p-4 mb-4 text-left"
@@ -211,6 +246,12 @@ export default function RegisterPage() {
             <span className="text-sm" style={{ color: isDarkMode ? '#6b7280' : '#9ca3af' }}>Time</span>
             <span className="text-sm font-bold" style={{ color: isDarkMode ? '#ffffff' : '#111827' }}>
               {matchInfo.time}
+            </span>
+          </div>
+          <div className="flex justify-between mb-2">
+            <span className="text-sm" style={{ color: isDarkMode ? '#6b7280' : '#9ca3af' }}>Map</span>
+            <span className="text-sm font-bold" style={{ color }}>
+              {matchInfo.map || 'TBD'}
             </span>
           </div>
           <div className="flex justify-between">
@@ -281,8 +322,17 @@ export default function RegisterPage() {
         <h1 className="text-xl font-black text-white">
           Register — {game.name} {MATCH_TYPES_LABEL[matchInfo.type]} {matchInfo.day}
         </h1>
-        <p className="text-white opacity-70 text-sm mt-1">
-          {matchInfo.time} · Entry: ₹{matchInfo.entryFee} · Prize Pool: ₹{matchInfo.prizePool.toLocaleString()}
+        <p className="text-white opacity-70 text-sm mt-1 flex flex-wrap items-center gap-2">
+          <span>{matchInfo.time}</span>
+          <span>·</span>
+          <span>Entry: ₹{matchInfo.entryFee}</span>
+          <span>·</span>
+          <span>Prize Pool: ₹{matchInfo.prizePool.toLocaleString()}</span>
+          <span>·</span>
+          <span className="flex items-center gap-1">
+            <Map size={14} />
+            {matchInfo.map || 'TBD'}
+          </span>
         </p>
       </div>
 
@@ -454,7 +504,7 @@ export default function RegisterPage() {
               </span>
             </div>
             <p className="text-xs mt-1" style={{ color: isDarkMode ? '#6b7280' : '#9ca3af' }}>
-              Secure payment via Razorpay
+              Secure payment via Cashfree
             </p>
           </div>
 

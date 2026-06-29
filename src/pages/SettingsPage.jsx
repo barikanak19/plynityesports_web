@@ -97,7 +97,7 @@ export default function SettingsPage() {
           ['# App Version', '1.0.0'],
           ['🔧 Build Number', '1'],
           ['🎮 Platform', 'Web'],
-          ['💳 Payment Gateway', 'Razorpay'],
+          ['💳 Payment Gateway', 'Cashfree'],
         ].map(([label, value]) => (
           <div key={label} style={{ ...rowStyle, marginBottom: 8 }}>
             <span className="text-sm" style={{ color: isDarkMode ? '#9ca3af' : '#6b7280' }}>{label}</span>

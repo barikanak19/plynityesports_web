@@ -3,7 +3,7 @@
  */
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Clock, ChevronDown, ChevronUp } from 'lucide-react';
+import { Clock, ChevronDown, ChevronUp, Map } from 'lucide-react';
 import PrizeRow from '../components/PrizeRow';
 import RegistrationBar from '../components/RegistrationBar';
 import { useApp } from '../context/AppContext';
@@ -103,6 +103,25 @@ export default function MatchCard({ match, game }) {
 
           {/* Divider */}
           <div style={{ height: 1, background: isDarkMode ? '#2a2d3e' : '#e5e7eb', marginBottom: 8 }} />
+
+          <div
+            className="rounded-xl p-3 mb-3"
+            style={{
+              background: `${color}12`,
+              border: `1px solid ${color}33`,
+            }}
+          >
+            <div className="text-[11px] uppercase tracking-[0.24em] mb-1" style={{ color: isDarkMode ? '#9ca3af' : '#6b7280' }}>
+              Game Details
+            </div>
+            <div className="text-sm font-semibold" style={{ color: isDarkMode ? '#f3f4f6' : '#111827' }}>
+              {game.name} • {match.type}
+            </div>
+            <div className="flex items-center gap-2 mt-2 text-sm font-medium" style={{ color }}>
+              <Map size={14} />
+              <span>Map: {match.map || 'TBD'}</span>
+            </div>
+          </div>
 
           {/* Prize rows */}
           {match.prizes.map((prize) => (

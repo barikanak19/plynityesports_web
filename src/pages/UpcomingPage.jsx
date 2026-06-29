@@ -2,7 +2,7 @@
  * UpcomingPage — shows registered matches saved in localStorage
  */
 import { useNavigate } from 'react-router-dom';
-import { Calendar } from 'lucide-react';
+import { Calendar, Map } from 'lucide-react';
 import PageHeader from '../components/PageHeader';
 import { useApp } from '../context/AppContext';
 
@@ -58,6 +58,10 @@ export default function UpcomingPage() {
                   </div>
                   <div className="text-sm mt-0.5" style={{ color: isDarkMode ? '#6b7280' : '#9ca3af' }}>
                     {m.time} · Entry: ₹{m.entryFee}
+                  </div>
+                  <div className="text-sm mt-1 flex items-center gap-1" style={{ color: isDarkMode ? '#9ca3af' : '#6b7280' }}>
+                    <Map size={14} />
+                    <span>Map: {m.map || 'TBD'}</span>
                   </div>
                 </div>
                 <button
