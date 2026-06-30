@@ -7,21 +7,7 @@
  * - Then call: cashfree.checkout({ paymentSessionId, returnUrl });
  */
 
-const getEnvVar = (key) => {
-  const value = import.meta.env[key];
-  return value || '';
-};
-
-export const CASHFREE_APP_ID = getEnvVar('VITE_CASHFREE_APP_ID');
-export const CASHFREE_ENV = getEnvVar('VITE_CASHFREE_ENV') || 'sandbox';
-
-if (import.meta.env.DEV) {
-  const maskedAppId = CASHFREE_APP_ID
-    ? `${CASHFREE_APP_ID.slice(0, 6)}...${CASHFREE_APP_ID.slice(-4)}`
-    : '(not set)';
-  console.log('[Cashfree] VITE_CASHFREE_APP_ID:', maskedAppId);
-  console.log('[Cashfree] VITE_CASHFREE_ENV:', CASHFREE_ENV);
-}
+import { CASHFREE_APP_ID, CASHFREE_ENV } from '../config/env.js';
 
 const CASHFREE_PAYMENT_SESSION_ENDPOINT = '/api/cashfree/session';
 

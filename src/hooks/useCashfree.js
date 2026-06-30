@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
-import { createCashfreePaymentSession, loadCashfreeScript, CASHFREE_ENV } from '../services/cashfreeService';
+import { CASHFREE_ENV } from '../config/env.js';
+import { createCashfreePaymentSession, loadCashfreeScript } from '../services/cashfreeService';
 
 export function useCashfree() {
   const initiatePayment = useCallback(async ({
