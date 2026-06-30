@@ -2,14 +2,19 @@
  * RegisterPage — full registration flow:
  * Form → Cashfree Payment → Google Sheets → Success Screen
  */
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import { Map } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { useCashfree } from '../hooks/useCashfree';
+import {
+  clearPendingRegistration,
+  loadPendingRegistration,
+  savePendingRegistration,
+  verifyCashfreePayment,
+} from '../services/cashfreeService';
 import { submitRegistration } from '../services/sheetsService';
 import { getAllMatches } from '../config/tournaments';
-import PageHeader from '../components/PageHeader';
 
 const MATCH_TYPES_LABEL = { SOLO: 'Solo', DUO: 'Duo', SQUAD: 'Squad' };
 
@@ -45,6 +50,102 @@ export default function RegisterPage() {
   });
 
   const [errors, setErrors] = useState({});
+
+  const completeRegistration = async (paymentIdValue, formOverride = null) => {
+    const registrationForm = formOverride || form;
+    const isDuoMatch = matchInfo?.type === 'DUO';
+    const isSquadMatch = matchInfo?.type === 'SQUAD';
+
+    setPaymentId(paymentIdValue);
+
+    const payload = {
+      timestamp: new Date().toISOString(),
+      game: game.name,
+      matchType: matchInfo.type,
+      day: matchInfo.day,
+      time: matchInfo.time,
+      entryFee: matchInfo.entryFee,
+      paymentId: paymentIdValue,
+      player1Name: registrationForm.playerName,
+      mobile: registrationForm.mobile,
+      email: registrationForm.email,
+      instagramId: registrationForm.instagramId,
+      ...(isDuoMatch || isSquadMatch ? { player2Name: registrationForm.player2Name } : {}),
+      ...(isSquadMatch ? {
+        player3Name: registrationForm.player3Name,
+        player4Name: registrationForm.player4Name,
+      } : {}),
+    };
+
+    try {
+      await submitRegistration(matchInfo.sheetKey, payload);
+      const key = `plynity_reg_${matchInfo.id}`;
+      const prev = parseInt(localStorage.getItem(key) || '0', 10);
+      localStorage.setItem(key, prev + 1);
+      addUpcomingMatch({
+        id: matchInfo.id,
+        game: game.name,
+        type: matchInfo.type,
+        day: matchInfo.day,
+        time: matchInfo.time,
+        map: matchInfo.map,
+        entryFee: matchInfo.entryFee,
+        color,
+        registeredAt: new Date().toISOString(),
+      });
+      clearPendingRegistration();
+      setStep('success');
+    } catch (err) {
+      setErrorMsg(err.message || 'Registration saved but sheet submission failed.');
+      setStep('success');
+    }
+  };
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const isPaymentReturn = params.get('payment_return') === '1';
+    const returnedOrderId = params.get('order_id');
+
+    if (!isPaymentReturn || !returnedOrderId || !matchInfo) {
+      return;
+    }
+
+    let cancelled = false;
+
+    const handlePaymentReturn = async () => {
+      setStep('paying');
+
+      try {
+        const pending = loadPendingRegistration();
+        const registrationForm = pending?.form || form;
+
+        if (pending?.form) {
+          setForm(pending.form);
+        }
+
+        const verification = await verifyCashfreePayment(returnedOrderId);
+
+        if (cancelled) return;
+
+        if (!verification?.isPaid) {
+          throw new Error('Payment was not completed. Please try again.');
+        }
+
+        navigate(location.pathname, { replace: true, state: location.state });
+        await completeRegistration(returnedOrderId, registrationForm);
+      } catch (err) {
+        if (cancelled) return;
+        setErrorMsg(err.message || 'Payment verification failed. Please try again.');
+        setStep('error');
+      }
+    };
+
+    handlePaymentReturn();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [location.search, matchInfo?.id]);
 
   if (!matchInfo) {
     return (
@@ -87,58 +188,22 @@ export default function RegisterPage() {
     }
     setStep('paying');
 
+    const orderId = `${matchInfo.id}-${Date.now()}`;
+    savePendingRegistration({
+      form,
+      matchId: matchInfo.id,
+      orderId,
+    });
+
     initiatePayment({
       amount: matchInfo.entryFee,
       name: form.playerName,
       email: form.email,
       phone: form.mobile,
-      orderId: `${matchInfo.id}-${Date.now()}`,
+      orderId,
       description: `${game.name} ${matchInfo.type} ${matchInfo.day} - ₹${matchInfo.entryFee}`,
-      onSuccess: async ({ paymentId }) => {
-        setPaymentId(paymentId);
-        // Build payload for Google Sheets
-        const payload = {
-          timestamp: new Date().toISOString(),
-          game: game.name,
-          matchType: matchInfo.type,
-          day: matchInfo.day,
-          time: matchInfo.time,
-          entryFee: matchInfo.entryFee,
-          paymentId,
-          player1Name: form.playerName,
-          mobile: form.mobile,
-          email: form.email,
-          instagramId: form.instagramId,
-          ...(isDuo || isSquad ? { player2Name: form.player2Name } : {}),
-          ...(isSquad ? {
-            player3Name: form.player3Name,
-            player4Name: form.player4Name,
-          } : {}),
-        };
-
-        try {
-          await submitRegistration(matchInfo.sheetKey, payload);
-          // Update local slot count
-          const key = `plynity_reg_${matchInfo.id}`;
-          const prev = parseInt(localStorage.getItem(key) || '0', 10);
-          localStorage.setItem(key, prev + 1);
-          // Save to upcoming matches
-          addUpcomingMatch({
-            id: matchInfo.id,
-            game: game.name,
-            type: matchInfo.type,
-            day: matchInfo.day,
-            time: matchInfo.time,
-            map: matchInfo.map,
-            entryFee: matchInfo.entryFee,
-            color,
-            registeredAt: new Date().toISOString(),
-          });
-          setStep('success');
-        } catch (err) {
-          setErrorMsg(err.message || 'Registration saved but sheet submission failed.');
-          setStep('success'); // still show success since payment went through
-        }
+      onSuccess: async ({ paymentId: paidOrderId }) => {
+        await completeRegistration(paidOrderId);
       },
       onFailure: (msg) => {
         setErrorMsg(msg || 'Payment failed. Please try again.');

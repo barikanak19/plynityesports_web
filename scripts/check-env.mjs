@@ -17,3 +17,10 @@ if (!appId) {
 
 console.log(`[build] Cashfree App ID detected (${appId.slice(0, 6)}...${appId.slice(-4)})`);
 console.log(`[build] Cashfree environment: ${cashfreeEnv}`);
+
+const secretKey = env.CASHFREE_SECRET_KEY?.trim();
+if (!secretKey) {
+  console.warn('[build] Warning: CASHFREE_SECRET_KEY is not set. /api/cashfree/session will fail until configured on Vercel.');
+} else {
+  console.log('[build] Cashfree secret key detected for server API routes.');
+}

@@ -1,23 +1,64 @@
 /**
  * cashfreeService — loads the Cashfree SDK and requests a backend-generated payment session id.
- *
- * This follows Cashfree's latest Web Checkout (v3) recommendations:
- * - SDK URL: https://sdk.cashfree.com/js/v3/cashfree.js
- * - Initialize with: const cashfree = Cashfree({ mode: 'sandbox' | 'production' });
- * - Then call: cashfree.checkout({ paymentSessionId, returnUrl });
  */
 
 import { CASHFREE_APP_ID, CASHFREE_ENV } from '../config/env.js';
 
 const CASHFREE_PAYMENT_SESSION_ENDPOINT = '/api/cashfree/session';
-
-// Latest Cashfree JS SDK (v3) as per official docs
+const CASHFREE_VERIFY_ENDPOINT = '/api/cashfree/verify';
 const CASHFREE_SCRIPT_URL = 'https://sdk.cashfree.com/js/v3/cashfree.js';
+const PENDING_REGISTRATION_KEY = 'plynity_pending_registration';
 
 let cashfreeScriptLoadingPromise = null;
 
+function parseApiError(response, text) {
+  if (!text) {
+    return `Payment server error (${response.status}).`;
+  }
+
+  try {
+    const data = JSON.parse(text);
+    return (
+      data?.error?.message ||
+      (typeof data?.error === 'string' ? data.error : null) ||
+      data?.message ||
+      data?.error ||
+      text
+    );
+  } catch {
+    return text;
+  }
+}
+
+export function buildCashfreeReturnUrl() {
+  const url = new URL(window.location.href);
+  url.searchParams.delete('order_id');
+  url.searchParams.delete('payment_return');
+  url.searchParams.set('payment_return', '1');
+  url.searchParams.set('order_id', '{order_id}');
+  return url.toString();
+}
+
+export function savePendingRegistration(payload) {
+  sessionStorage.setItem(PENDING_REGISTRATION_KEY, JSON.stringify(payload));
+}
+
+export function loadPendingRegistration() {
+  const raw = sessionStorage.getItem(PENDING_REGISTRATION_KEY);
+  if (!raw) return null;
+
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+
+export function clearPendingRegistration() {
+  sessionStorage.removeItem(PENDING_REGISTRATION_KEY);
+}
+
 export function loadCashfreeScript() {
-  // Ensure we never attach more than one script tag and that we can share a single promise.
   if (typeof window === 'undefined') {
     return Promise.resolve(false);
   }
@@ -50,7 +91,6 @@ export function loadCashfreeScript() {
     };
 
     if (existingScript) {
-      console.log('[Cashfree] Reusing existing SDK script tag.');
       existingScript.addEventListener('load', onLoaded, { once: true });
       existingScript.addEventListener('error', onError, { once: true });
       return;
@@ -74,6 +114,7 @@ export async function createCashfreePaymentSession({
   customerEmail,
   customerPhone,
   orderNote,
+  returnUrl,
 }) {
   if (!CASHFREE_APP_ID) {
     throw new Error('Cashfree app ID is not configured. Please set VITE_CASHFREE_APP_ID.');
@@ -88,6 +129,7 @@ export async function createCashfreePaymentSession({
     amount,
     customerEmail,
     mode: CASHFREE_ENV,
+    returnUrl,
   });
 
   let response;
@@ -103,30 +145,26 @@ export async function createCashfreePaymentSession({
         customerEmail,
         customerPhone,
         orderNote,
-        appId: CASHFREE_APP_ID,
-        mode: CASHFREE_ENV,
+        returnUrl,
       }),
     });
   } catch (networkError) {
     console.error('[Cashfree] Network error while creating payment session.', networkError);
-    // This is where CORS issues would surface on the frontend as a network error.
     throw new Error('Network error while contacting payment server. Please check backend/CORS configuration.');
   }
 
+  const text = await response.text().catch(() => '');
+
   if (!response.ok) {
-    const text = await response.text().catch(() => '');
+    const message = parseApiError(response, text);
     console.error('[Cashfree] Backend responded with non-OK status for payment session.', {
       status: response.status,
       body: text,
     });
-    throw new Error(text || 'Unable to create Cashfree payment session (backend error).');
+    throw new Error(message);
   }
 
-  const data = await response.json().catch((parseError) => {
-    console.error('[Cashfree] Failed to parse backend response JSON for payment session.', parseError);
-    return {};
-  });
-
+  const data = text ? JSON.parse(text) : {};
   const paymentSessionId =
     data?.paymentSessionId || data?.payment_session_id || data?.payment_sessionId;
 
@@ -138,4 +176,26 @@ export async function createCashfreePaymentSession({
   console.log('[Cashfree] Received payment session from backend.', { paymentSessionId });
 
   return { ...data, paymentSessionId };
+}
+
+export async function verifyCashfreePayment(orderId) {
+  if (!orderId) {
+    throw new Error('Order ID is required to verify payment.');
+  }
+
+  console.log('[Cashfree] Verifying payment for order...', { orderId });
+
+  const response = await fetch(`${CASHFREE_VERIFY_ENDPOINT}?order_id=${encodeURIComponent(orderId)}`);
+
+  const text = await response.text().catch(() => '');
+
+  if (!response.ok) {
+    const message = parseApiError(response, text);
+    throw new Error(message);
+  }
+
+  const data = text ? JSON.parse(text) : {};
+  console.log('[Cashfree] Verification response.', data);
+
+  return data;
 }
